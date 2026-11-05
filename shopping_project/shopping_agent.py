@@ -103,18 +103,23 @@ agent = create_agent(
 )
 
 def describe_product_image(image_path: str) -> str:
-    """ 
-    Analyze the product image and return a description of the product. 
-    """
-    
+    """Analyze the product image and return a description of the product."""
     with open(image_path, "rb") as f:
-        image_data = base64.b64decode(f.read()).decode()
-        
+        image_data = base64.b64encode(f.read()).decode("ascii")
+
     ext = os.path.splitext(image_path)[1].lower().lstrip(".")
-    mime = "image/jpeg" if ext in ["jpg", "jpeg"] else f"image/{ext}"
-    image_message = HumanMessage(content=[
-        
-    ]
+    mime = "image/jpeg" if ext in ("jpg", "jpeg") else f"image/{ext}"
+    image_message = HumanMessage(
+        content=[
+            {"type": "text", "text": "Describe this product image."},
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime};base64,{image_data}"},
+            },
+        ]
+    )
+    response = vision_llm.invoke([image_message])
+    return str(response.content)
 
 
 if __name__ == "__main__":
